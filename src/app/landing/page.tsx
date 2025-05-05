@@ -1,8 +1,13 @@
+"use client";
 import React from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import FAQSection from '@/app/components/Faqs';
+import Navbar from '@/app/components/landing/Navbar';
 
 const MemoraLandingPage = () => {
+    const [isOpen, setIsOpen] = React.useState(false);
+
     return (
         <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
             <Head>
@@ -11,45 +16,37 @@ const MemoraLandingPage = () => {
                 <link rel="icon" href="/favicon.ico" />
             </Head>
 
-            {/* Navigation */}
-            <nav className="px-6 py-4 bg-white shadow-sm">
-                <div className="max-w-7xl mx-auto flex justify-between items-center">
-                    <div className="flex items-center space-x-2">
-                        <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-                            <span className="text-white font-bold">M</span>
-                        </div>
-                        <span className="text-xl font-bold text-indigo-600">Memora</span>
-                    </div>
-                    <div className="hidden md:flex space-x-8">
-                        <a href="#features" className="text-gray-600 hover:text-indigo-600">Features</a>
-                        <a href="#how-it-works" className="text-gray-600 hover:text-indigo-600">How It Works</a>
-                        <a href="#pricing" className="text-gray-600 hover:text-indigo-600">Pricing</a>
-                        <a href="#testimonials" className="text-gray-600 hover:text-indigo-600">Testimonials</a>
-                    </div>
-                    <Link href="/auth/Signin">
-                        <button className="cursor-pointer bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
-                            Get Started
-                        </button>
-                    </Link>
-                </div>
-            </nav>
+            <Navbar />
 
             {/* Hero Section */}
-            <section className="max-w-7xl mx-auto px-6 py-16 md:py-24 flex flex-col md:flex-row items-center">
+            <section className="max-w-7xl mx-auto px-6 py-4 md:py-15 flex flex-col md:flex-row items-center">
                 <div className="md:w-1/2 mb-12 md:mb-0">
-                    <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-                        Your AI-Powered <span className="text-indigo-600">Study Assistant</span>
-                    </h1>
+                    <div className="flex flex-row items-center gap-4">
+                        <img
+                            src="/images/memora.png"
+                            alt="Memora Logo"
+                            className="h-auto w-auto"
+                        />
+                        <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
+                            Your AI-Powered
+                            <span className="text-indigo-600"> Study Assistant</span>
+                        </h1>
+                    </div>
+
+                    <div className='flex flex-row md:flex-row items-center space-x-2 mb-4'>
+                        <span className='text-2xl md:text-3xl text-yellow-500'> Smarter Learning,</span>
+                        <span className='text-1xl md:text-2xl text-green-500'> Better Grades.</span>
+                    </div>
+
                     <p className="text-xl text-gray-600 mb-8">
                         Transform your study sessions with smart note parsing, automatic summarization, quiz generation, and personalized tutoring—all powered by AI.
                     </p>
                     <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-                        <button className="cursor-pointer bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors text-lg font-medium">
-                            Start Free Trial
-                        </button>
-                        <button className="cursor-pointer border border-indigo-600 text-indigo-600 px-6 py-3 rounded-lg hover:bg-indigo-50 transition-colors text-lg font-medium">
-                            See How It Works
-                        </button>
+                        <Link href={'auth/SignUp'}>
+                            <button className="cursor-pointer border border-indigo-600 text-indigo-600 px-6 py-3 rounded-lg hover:bg-indigo-600 hover:text-white transition-colors text-lg font-medium">
+                                See How It Works
+                            </button>
+                        </Link>
                     </div>
                 </div>
                 <div className="md:w-1/2 flex justify-center">
@@ -82,7 +79,7 @@ const MemoraLandingPage = () => {
             </section>
 
             {/* Features Section */}
-            <section id="features" className="max-w-7xl mx-auto px-6 py-16 bg-white">
+            <section id="features" className="max-w-7xl mx-auto px-6 py-18 bg-white shadow-xl rounded-lg">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl font-bold text-gray-900 mb-4">Powerful Features for Effective Learning</h2>
                     <p className="text-xl text-gray-600 max-w-3xl mx-auto">
@@ -180,26 +177,230 @@ const MemoraLandingPage = () => {
                     </p>
                 </div>
 
-                <div className="grid md:grid-cols-4 gap-8">
-                    <div className="text-center">
+                <div className="grid md:grid-cols-4 gap-8 relative">
+                    {/* Step 1 */}
+                    <div className="text-center relative">
                         <div className="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 text-white font-bold text-xl">1</div>
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">Upload Your Notes</h3>
                         <p className="text-gray-600">Add PDFs, DOCX, images, or handwritten notes</p>
+
+                        {/* Desktop arrow (right) */}
+                        <div className="hidden md:block absolute top-8 right-[-2rem] text-indigo-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            </svg>
+                        </div>
+
+                        {/* Mobile arrow (down) */}
+                        <div className="md:hidden flex justify-center mt-4 mb-2 text-indigo-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                            </svg>
+                        </div>
                     </div>
-                    <div className="text-center">
+
+                    {/* Step 2 */}
+                    <div className="text-center relative">
                         <div className="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 text-white font-bold text-xl">2</div>
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">AI Processes Content</h3>
                         <p className="text-gray-600">Extracts key concepts and structures information</p>
+
+                        {/* Desktop arrow (right) */}
+                        <div className="hidden md:block absolute top-8 right-[-2rem] text-indigo-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            </svg>
+                        </div>
+
+                        {/* Mobile arrow (down) */}
+                        <div className="md:hidden flex justify-center mt-4 mb-2 text-indigo-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                            </svg>
+                        </div>
                     </div>
-                    <div className="text-center">
+
+                    {/* Step 3 */}
+                    <div className="text-center relative">
                         <div className="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 text-white font-bold text-xl">3</div>
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">Choose Learning Tools</h3>
                         <p className="text-gray-600">Select summaries, quizzes, or schedule planning</p>
+
+                        {/* Desktop arrow (right) */}
+                        <div className="hidden md:block absolute top-8 right-[-2rem] text-indigo-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            </svg>
+                        </div>
+
+                        {/* Mobile arrow (down) */}
+                        <div className="md:hidden flex justify-center mt-4 mb-2 text-indigo-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                            </svg>
+                        </div>
                     </div>
+
+                    {/* Step 4 (no arrow after last step) */}
                     <div className="text-center">
                         <div className="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 text-white font-bold text-xl">4</div>
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">Study Smarter</h3>
                         <p className="text-gray-600">Achieve better results in less time</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id='pricing' className="max-w-7xl mx-auto px-6 py-18 bg-gradient-to-br from-white/80 
+            via-blue-400/20 to-yellow-200/20 rounded-lg shadow-sm">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+                    {/* Section Header */}
+                    <div className="text-center mb-12">
+                        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                            Simple, transparent pricing
+                        </h2>
+                        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                            Start for free, upgrade as you grow. Cancel anytime.
+                        </p>
+                    </div>
+
+                    {/* Pricing Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        {/* Free Tier */}
+                        <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
+                            <div className="p-6">
+                                <h3 className="text-2xl font-bold text-gray-900 mb-1">Free</h3>
+                                <p className="text-gray-600 mb-6">For casual learners</p>
+                                <div className="mb-6">
+                                    <span className="text-4xl font-bold text-gray-900">$0</span>
+                                    <span className="text-gray-500">/month</span>
+                                </div>
+                                <ul className="space-y-3 mb-8">
+                                    <li className="flex items-center">
+                                        <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <span className="text-gray-700">5 note uploads/month</span>
+                                    </li>
+                                    <li className="flex items-center">
+                                        <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <span className="text-gray-700">Basic AI processing</span>
+                                    </li>
+                                    <li className="flex items-center">
+                                        <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <span className="text-gray-700">Flashcard generation</span>
+                                    </li>
+                                </ul>
+                                <button className="w-full bg-gray-100 text-gray-800 font-medium py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer">
+                                    Get Started
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Pro Tier (Featured) */}
+                        <div className="bg-white rounded-xl shadow-lg overflow-hidden border-2 border-indigo-600 transform md:scale-105 relative">
+                            <div className="absolute top-0 right-0 bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
+                                Most Popular
+                            </div>
+                            <div className="p-6">
+                                <h3 className="text-2xl font-bold text-gray-900 mb-1">Pro</h3>
+                                <p className="text-gray-600 mb-6">For serious students</p>
+                                <div className="mb-6">
+                                    <span className="text-4xl font-bold text-gray-900">$9</span>
+                                    <span className="text-gray-500">/month</span>
+                                </div>
+                                <ul className="space-y-3 mb-8">
+                                    <li className="flex items-center">
+                                        <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <span className="text-gray-700">50 note uploads/month</span>
+                                    </li>
+                                    <li className="flex items-center">
+                                        <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <span className="text-gray-700">Advanced AI processing</span>
+                                    </li>
+                                    <li className="flex items-center">
+                                        <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <span className="text-gray-700">Flashcards & quizzes</span>
+                                    </li>
+                                    <li className="flex items-center">
+                                        <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <span className="text-gray-700">Study schedule planning</span>
+                                    </li>
+                                    <li className="flex items-center">
+                                        <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <span className="text-gray-700">Priority support</span>
+                                    </li>
+                                </ul>
+                                <button className="w-full bg-indigo-600 text-white font-medium py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors cursor-pointer">
+                                    Start Free Trial
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Enterprise Tier */}
+                        <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
+                            <div className="p-6">
+                                <h3 className="text-2xl font-bold text-gray-900 mb-1">Enterprise</h3>
+                                <p className="text-gray-600 mb-6">For institutions</p>
+                                <div className="mb-6">
+                                    <span className="text-4xl font-bold text-gray-900">Custom</span>
+                                </div>
+                                <ul className="space-y-3 mb-8">
+                                    <li className="flex items-center">
+                                        <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <span className="text-gray-700">Unlimited uploads</span>
+                                    </li>
+                                    <li className="flex items-center">
+                                        <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <span className="text-gray-700">Premium AI processing</span>
+                                    </li>
+                                    <li className="flex items-center">
+                                        <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <span className="text-gray-700">All Pro features</span>
+                                    </li>
+                                    <li className="flex items-center">
+                                        <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <span className="text-gray-700">Team management</span>
+                                    </li>
+                                    <li className="flex items-center">
+                                        <svg className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <span className="text-gray-700">Dedicated account manager</span>
+                                    </li>
+                                </ul>
+                                <button className="w-full bg-gray-100 text-gray-800 font-medium py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer">
+                                    Contact Sales
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-12 text-center text-gray-500 text-sm">
+                        <p>All plans come with a 14-day money-back guarantee. Need help deciding?</p>
+                        <a href="#" className="text-indigo-600 hover:text-indigo-800 text-xl mt-6 font-medium">Compare plans →</a>
                     </div>
                 </div>
             </section>
@@ -282,6 +483,11 @@ const MemoraLandingPage = () => {
                 </div>
             </section>
 
+            {/*FAQS */}
+            <section id='faq' className="max-w-7xl py-16 mx-auto  px-6 bg-white">
+                <FAQSection />
+            </section>
+
             {/* CTA Section */}
             <section className="bg-indigo-600 text-white py-16">
                 <div className="max-w-7xl mx-auto px-6 text-center">
@@ -305,15 +511,6 @@ const MemoraLandingPage = () => {
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="grid md:grid-cols-4 gap-8">
                         <div>
-                            <div className="flex items-center space-x-2 mb-4">
-                                <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-                                    <span className="text-white font-bold">M</span>
-                                </div>
-                                <span className="text-xl font-bold text-white">Memora</span>
-                            </div>
-                            <p className="mb-4">
-                                AI-powered study assistant helping students learn more effectively.
-                            </p>
                             <div className="flex space-x-4">
                                 <a href="#" className="text-gray-400 hover:text-white">
                                     <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -344,7 +541,7 @@ const MemoraLandingPage = () => {
                         <div>
                             <h3 className="text-white font-semibold mb-4">Company</h3>
                             <ul className="space-y-2">
-                                <li><a href="#" className="hover:text-white">About</a></li>
+                                <li><Link href="/AboutPage" className="hover:text-white">About</Link></li>
                                 <li><a href="#" className="hover:text-white">Careers</a></li>
                                 <li><a href="#" className="hover:text-white">Privacy</a></li>
                                 <li><a href="#" className="hover:text-white">Terms</a></li>
@@ -354,14 +551,14 @@ const MemoraLandingPage = () => {
                             <h3 className="text-white font-semibold mb-4">Support</h3>
                             <ul className="space-y-2">
                                 <li><a href="#" className="hover:text-white">Help Center</a></li>
-                                <li><a href="#" className="hover:text-white">Contact Us</a></li>
+                                <li><Link href="/ContactPage" className="hover:text-white">Contact Us</Link></li>
                                 <li><a href="#" className="hover:text-white">Status</a></li>
                                 <li><a href="#" className="hover:text-white">Feedback</a></li>
                             </ul>
                         </div>
                     </div>
                     <div className="border-t border-gray-800 mt-8 pt-8 text-center">
-                        <p>&copy; {new Date().getFullYear()} Memora AI. All rights reserved.</p>
+                        <p>&copy; {new Date().getFullYear()} Memora. All rights reserved.</p>
                     </div>
                 </div>
             </footer>

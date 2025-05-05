@@ -1,4 +1,4 @@
-import MemoraLandingPage from "@/landing/LandingPage";
+import MemoraLandingPage from "@/app/landing/page";
 
 export default function Home() {
   return (
