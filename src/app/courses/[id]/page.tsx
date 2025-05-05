@@ -2,7 +2,32 @@ import CourseHeader from '@/app/components/courses/CourseHeader';
 import CourseTabs from '@/app/components/courses/CourseTabs';
 import { notFound } from 'next/navigation';
 
-const courses = [
+interface SyllabusItem {
+    week: number;
+    topic: string;
+    completed: boolean;
+}
+
+interface Course {
+    id: string;
+    title: string;
+    instructor: string;
+    description: string;
+    progress: number;
+    thumbnail: string;
+    lastAccessed: string;
+    totalNotes: number;
+    totalQuizzes: number;
+    syllabus: SyllabusItem[];
+}
+
+interface PageProps {
+    params: {
+        id: string;
+    };
+}
+
+const courses: Course[] = [
     {
         id: '1',
         title: 'Biology 101',
@@ -25,7 +50,7 @@ const courses = [
     // ... other courses
 ];
 
-export default function CourseDetailPage({ params }: { params: { id: string } }) {
+export default function CourseDetailPage({ params }: PageProps) {
     const course = courses.find((c) => c.id === params.id);
 
     if (!course) {
