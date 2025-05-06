@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/client';
 import type { Session, User } from '@supabase/supabase-js';
@@ -19,114 +19,103 @@ interface AuthContextType {
     refreshSession: () => Promise<void>;
     updateProfile: (updates: Partial<Profile>) => Promise<void>;
     getCourseProgress: (courseId: string) => Promise<number>;
+    logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const router = useRouter();
-    const [state, setState] = useState<{
-        user: (User & Profile) | null;
-        session: Session | null;
-        isLoading: boolean;
-    }>({
-        user: null,
-        session: null,
-        isLoading: true,
-    });
+    const [user, setUser] = useState<(User & Profile) | null>(null);
+    const [session, setSession] = useState<Session | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     const fetchUserProfile = useCallback(async (userId: string) => {
         try {
-            const { data: profile, error } = await supabase
+            const { data, error } = await supabase
                 .from('profiles')
                 .select('*')
                 .eq('id', userId)
                 .single();
 
             if (error) throw error;
-            return profile;
+            return data;
         } catch (error) {
             console.error('Failed to fetch profile:', error);
             return null;
         }
     }, []);
 
-    const handleAuthChange = useCallback(async (event: string, session: Session | null) => {
-        if (session) {
+    const setUserSession = useCallback(async (session: Session | null) => {
+        if (session?.user) {
             const profile = await fetchUserProfile(session.user.id);
-            setState({
-                user: { ...session.user, ...profile },
-                session,
-                isLoading: false,
-            });
+            setUser({ ...session.user, ...profile });
+            setSession(session);
         } else {
-            setState({
-                user: null,
-                session: null,
-                isLoading: false,
-            });
-            router.refresh();
+            setUser(null);
+            setSession(null);
         }
-    }, [fetchUserProfile, router]);
+        setIsLoading(false);
+    }, [fetchUserProfile]);
+
+    const handleAuthChange = useCallback(
+        async (_event: string, session: Session | null) => {
+            await setUserSession(session);
+        },
+        [setUserSession]
+    );
 
     useEffect(() => {
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => handleAuthChange(event, session));
+        const {
+            data: { subscription },
+        } = supabase.auth.onAuthStateChange(handleAuthChange);
 
-        // Initialize auth state
         supabase.auth.getSession().then(({ data: { session } }) => {
-            if (session) {
-                handleAuthChange('SIGNED_IN', session);
-            } else {
-                setState(prev => ({ ...prev, isLoading: false }));
-            }
+            setUserSession(session);
         });
 
-        return () => subscription.unsubscribe();
-    }, [handleAuthChange]);
+        return () => {
+            subscription.unsubscribe();
+        };
+    }, [handleAuthChange, setUserSession]);
 
     const refreshSession = useCallback(async () => {
-        setState(prev => ({ ...prev, isLoading: true }));
+        setIsLoading(true);
         const { data: { session }, error } = await supabase.auth.refreshSession();
         if (error) {
             console.error('Failed to refresh session:', error);
-            setState(prev => ({ ...prev, isLoading: false }));
+            setIsLoading(false);
             return;
         }
-        await handleAuthChange('SIGNED_IN', session);
-    }, [handleAuthChange]);
+        await setUserSession(session);
+    }, [setUserSession]);
 
     const updateProfile = useCallback(async (updates: Partial<Profile>) => {
-        if (!state.user?.id) return;
-
+        if (!user?.id) return;
         try {
             const { error } = await supabase
                 .from('profiles')
                 .update({ ...updates, updated_at: new Date().toISOString() })
-                .eq('id', state.user.id);
+                .eq('id', user.id);
 
             if (error) throw error;
 
-            // Refresh user data
-            const profile = await fetchUserProfile(state.user.id);
-            setState(prev => ({
-                ...prev,
-                user: prev.user ? { ...prev.user, ...profile } : null,
-            }));
+            const profile = await fetchUserProfile(user.id);
+            setUser(prev => (prev ? { ...prev, ...profile } : null));
         } catch (error) {
             console.error('Failed to update profile:', error);
             throw error;
         }
-    }, [state.user?.id, fetchUserProfile]);
+    }, [user?.id, fetchUserProfile]);
 
     const getCourseProgress = useCallback(async (courseId: string) => {
-        if (!state.user?.id) return 0;
-
+        if (!user?.id) return 0;
         try {
             const { data, error } = await supabase
                 .from('courses')
                 .select('completed_hours, target_hours')
                 .eq('id', courseId)
-                .eq('user_id', state.user.id)
+                .eq('user_id', user.id)
                 .single();
 
             if (error || !data) return 0;
@@ -138,28 +127,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.error('Failed to fetch course progress:', error);
             return 0;
         }
-    }, [state.user?.id]);
+    }, [user?.id]);
 
-    const value = {
-        user: state.user,
-        session: state.session,
-        isLoading: state.isLoading,
-        refreshSession,
-        updateProfile,
-        getCourseProgress,
-    };
+    const logout = useCallback(async () => {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+            console.error('Logout failed:', error);
+            return;
+        }
+        setUser(null);
+        setSession(null);
+        router.refresh();
+    }, [router]);
 
-    return (
-        <AuthContext.Provider value={value}>
-            {children}
-        </AuthContext.Provider>
+    const value = useMemo(
+        () => ({
+            user,
+            session,
+            isLoading,
+            refreshSession,
+            updateProfile,
+            getCourseProgress,
+            logout,
+        }),
+        [user, session, isLoading, refreshSession, updateProfile, getCourseProgress, logout]
     );
+
+    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export const useAuth = () => {
     const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error('useAuth must be used within AuthProvider');
-    }
+    if (!context) throw new Error('useAuth must be used within AuthProvider');
     return context;
 };
