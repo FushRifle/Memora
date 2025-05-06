@@ -1,4 +1,4 @@
-'use client'; // If using Next.js App Router
+'use client';
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/client';
