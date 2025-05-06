@@ -1,8 +1,9 @@
-"use client";
+'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Head from 'next/head';
+import { supabase } from '@/lib/client';
 
 export default function SignIn() {
     const [email, setEmail] = useState('');
@@ -17,20 +18,12 @@ export default function SignIn() {
         setError('');
 
         try {
-            // Replace with your actual authentication API call
-            const response = await fetch('/api/auth/signin', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email, password }),
+            const { data, error: signInError } = await supabase.auth.signInWithPassword({
+                email,
+                password
             });
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Sign in failed');
-            }
+            if (signInError) throw signInError;
 
             // Redirect to dashboard on successful sign in
             router.push('/dashboard');
@@ -38,6 +31,21 @@ export default function SignIn() {
             setError(err instanceof Error ? err.message : 'An unknown error occurred');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleSocialLogin = async (provider: 'github' | 'google') => {
+        try {
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider,
+                options: {
+                    redirectTo: `${window.location.origin}/auth/callback`
+                }
+            });
+
+            if (error) throw error;
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Social login failed');
         }
     };
 
@@ -104,7 +112,7 @@ export default function SignIn() {
                                     required
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:text-black focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                 />
                             </div>
                         </div>
@@ -122,7 +130,7 @@ export default function SignIn() {
                                     required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-text-black focus:outline-none focus:text-black focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                 />
                             </div>
                         </div>
@@ -154,7 +162,7 @@ export default function SignIn() {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${loading ? 'opacity-70 cursor-not-allowed' : ''
+                                className={`w-full flex cursor-pointer justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${loading ? 'opacity-70 cursor-not-allowed' : ''
                                     }`}
                             >
                                 {loading ? (
@@ -202,6 +210,7 @@ export default function SignIn() {
                             <div>
                                 <button
                                     type="button"
+                                    onClick={() => handleSocialLogin('github')}
                                     className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
                                 >
                                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
@@ -217,6 +226,7 @@ export default function SignIn() {
                             <div>
                                 <button
                                     type="button"
+                                    onClick={() => handleSocialLogin('google')}
                                     className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
                                 >
                                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">

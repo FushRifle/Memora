@@ -1,4 +1,10 @@
-import { FiBook, FiClock, FiUser } from 'react-icons/fi';
+import { FiBook, FiClock, FiUser, FiFileText, FiEdit } from 'react-icons/fi';
+
+interface SyllabusItem {
+    week: number;
+    topic: string;
+    completed: boolean;
+}
 
 interface Course {
     id: string;
@@ -8,6 +14,9 @@ interface Course {
     progress: number;
     thumbnail: string;
     lastAccessed: string;
+    totalNotes: number;
+    totalQuizzes: number;
+    syllabus: SyllabusItem[];
 }
 
 export default function CourseHeader({ course }: { course: Course }) {
@@ -25,7 +34,7 @@ export default function CourseHeader({ course }: { course: Course }) {
                     <p className="text-gray-200">{course.description}</p>
                 </div>
             </div>
-            <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-6 grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div className="flex items-center">
                     <FiUser className="h-5 w-5 text-gray-400 mr-2" />
                     <div>
@@ -35,7 +44,7 @@ export default function CourseHeader({ course }: { course: Course }) {
                 </div>
                 <div className="flex items-center">
                     <FiBook className="h-5 w-5 text-gray-400 mr-2" />
-                    <div>
+                    <div className="w-full">
                         <p className="text-sm text-gray-500">Progress</p>
                         <div className="flex items-center">
                             <div className="w-full bg-gray-200 rounded-full h-2 mr-2">
@@ -53,6 +62,20 @@ export default function CourseHeader({ course }: { course: Course }) {
                     <div>
                         <p className="text-sm text-gray-500">Last accessed</p>
                         <p className="font-medium">{course.lastAccessed}</p>
+                    </div>
+                </div>
+                <div className="flex items-center">
+                    <FiFileText className="h-5 w-5 text-gray-400 mr-2" />
+                    <div>
+                        <p className="text-sm text-gray-500">Total Notes</p>
+                        <p className="font-medium">{course.totalNotes}</p>
+                    </div>
+                </div>
+                <div className="flex items-center">
+                    <FiEdit className="h-5 w-5 text-gray-400 mr-2" />
+                    <div>
+                        <p className="text-sm text-gray-500">Total Quizzes</p>
+                        <p className="font-medium">{course.totalQuizzes}</p>
                     </div>
                 </div>
             </div>

@@ -1,163 +1,165 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/client';
+import type { Session, User } from '@supabase/supabase-js';
 
-interface User {
+interface Profile {
     id: string;
-    name: string;
-    email: string;
-    avatar?: string;
-    role: 'student' | 'educator';
+    full_name?: string;
+    avatar_url?: string;
+    role?: string;
 }
 
 interface AuthContextType {
-    user: User | null;
-    isAuthenticated: boolean;
+    user: (User & Profile) | null;
+    session: Session | null;
     isLoading: boolean;
-    login: (email: string, password: string) => Promise<void>;
-    register: (name: string, email: string, password: string) => Promise<void>;
-    logout: () => Promise<void>;
     refreshSession: () => Promise<void>;
+    updateProfile: (updates: Partial<Profile>) => Promise<void>;
+    getCourseProgress: (courseId: string) => Promise<number>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
     const router = useRouter();
-    const [user, setUser] = useState<User | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [state, setState] = useState<{
+        user: (User & Profile) | null;
+        session: Session | null;
+        isLoading: boolean;
+    }>({
+        user: null,
+        session: null,
+        isLoading: true,
+    });
 
-    // Mock function to simulate API call delay
-    const mockApiCall = async <T,>(data: T, success = true, delay = 1000): Promise<T> => {
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                if (success) {
-                    resolve(data);
-                } else {
-                    reject(new Error('Mock API error'));
-                }
-            }, delay);
-        });
-    };
+    const fetchUserProfile = useCallback(async (userId: string) => {
+        try {
+            const { data: profile, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', userId)
+                .single();
 
-    // Check for existing session on initial load
-    useEffect(() => {
-        const initializeAuth = async () => {
-            try {
-                // In a real app, you would check for an existing session/token
-                const storedUser = localStorage.getItem('memora-user');
-
-                if (storedUser) {
-                    const userData = JSON.parse(storedUser);
-                    // Mock validation
-                    await mockApiCall(userData);
-                    setUser(userData);
-                }
-            } catch (error) {
-                console.error('Session initialization failed:', error);
-                localStorage.removeItem('memora-user');
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        initializeAuth();
+            if (error) throw error;
+            return profile;
+        } catch (error) {
+            console.error('Failed to fetch profile:', error);
+            return null;
+        }
     }, []);
 
-    const login = async (email: string, password: string) => {
-        setIsLoading(true);
-        try {
-            // Mock login - in a real app, this would call your authentication API
-            if (email === 'demo@memora.ai' && password === 'demo123') {
-                const mockUser: User = {
-                    id: 'user-123',
-                    name: 'Demo User',
-                    email: 'demo@memora.ai',
-                    role: 'student'
-                };
+    const handleAuthChange = useCallback(async (event: string, session: Session | null) => {
+        if (session) {
+            const profile = await fetchUserProfile(session.user.id);
+            setState({
+                user: { ...session.user, ...profile },
+                session,
+                isLoading: false,
+            });
+        } else {
+            setState({
+                user: null,
+                session: null,
+                isLoading: false,
+            });
+            router.refresh();
+        }
+    }, [fetchUserProfile, router]);
 
-                await mockApiCall(mockUser);
-                setUser(mockUser);
-                localStorage.setItem('memora-user', JSON.stringify(mockUser));
-                router.push('/dashboard');
+    useEffect(() => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => handleAuthChange(event, session));
+
+        // Initialize auth state
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+                handleAuthChange('SIGNED_IN', session);
             } else {
-                throw new Error('Invalid email or password');
+                setState(prev => ({ ...prev, isLoading: false }));
             }
-        } catch (error) {
-            console.error('Login failed:', error);
-            throw error;
-        } finally {
-            setIsLoading(false);
+        });
+
+        return () => subscription.unsubscribe();
+    }, [handleAuthChange]);
+
+    const refreshSession = useCallback(async () => {
+        setState(prev => ({ ...prev, isLoading: true }));
+        const { data: { session }, error } = await supabase.auth.refreshSession();
+        if (error) {
+            console.error('Failed to refresh session:', error);
+            setState(prev => ({ ...prev, isLoading: false }));
+            return;
         }
-    };
+        await handleAuthChange('SIGNED_IN', session);
+    }, [handleAuthChange]);
 
-    const register = async (name: string, email: string, password: string) => {
-        setIsLoading(true);
-        try {
-            // Mock registration
-            const mockUser: User = {
-                id: `user-${Math.random().toString(36).substring(2, 9)}`,
-                name,
-                email,
-                role: 'student'
-            };
-
-            await mockApiCall(mockUser);
-            setUser(mockUser);
-            localStorage.setItem('memora-user', JSON.stringify(mockUser));
-            router.push('/dashboard');
-        } catch (error) {
-            console.error('Registration failed:', error);
-            throw error;
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const logout = async () => {
-        try {
-            // Mock logout
-            await mockApiCall({ success: true });
-            setUser(null);
-            localStorage.removeItem('memora-user');
-            router.push('/auth/signin');
-        } catch (error) {
-            console.error('Logout failed:', error);
-            throw error;
-        }
-    };
-
-    const refreshSession = async () => {
-        if (!user) return;
+    const updateProfile = useCallback(async (updates: Partial<Profile>) => {
+        if (!state.user?.id) return;
 
         try {
-            // Mock session refresh
-            await mockApiCall(user);
-            // In a real app, you would validate/refresh the token here
+            const { error } = await supabase
+                .from('profiles')
+                .update({ ...updates, updated_at: new Date().toISOString() })
+                .eq('id', state.user.id);
+
+            if (error) throw error;
+
+            // Refresh user data
+            const profile = await fetchUserProfile(state.user.id);
+            setState(prev => ({
+                ...prev,
+                user: prev.user ? { ...prev.user, ...profile } : null,
+            }));
         } catch (error) {
-            console.error('Session refresh failed:', error);
-            await logout();
+            console.error('Failed to update profile:', error);
+            throw error;
         }
-    };
+    }, [state.user?.id, fetchUserProfile]);
+
+    const getCourseProgress = useCallback(async (courseId: string) => {
+        if (!state.user?.id) return 0;
+
+        try {
+            const { data, error } = await supabase
+                .from('courses')
+                .select('completed_hours, target_hours')
+                .eq('id', courseId)
+                .eq('user_id', state.user.id)
+                .single();
+
+            if (error || !data) return 0;
+
+            return Math.round(
+                (Number(data.completed_hours) / (Number(data.target_hours) || 1)) * 100
+            );
+        } catch (error) {
+            console.error('Failed to fetch course progress:', error);
+            return 0;
+        }
+    }, [state.user?.id]);
 
     const value = {
-        user,
-        isAuthenticated: !!user,
-        isLoading,
-        login,
-        register,
-        logout,
-        refreshSession
+        user: state.user,
+        session: state.session,
+        isLoading: state.isLoading,
+        refreshSession,
+        updateProfile,
+        getCourseProgress,
     };
 
-    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+    return (
+        <AuthContext.Provider value={value}>
+            {children}
+        </AuthContext.Provider>
+    );
 }
 
 export const useAuth = () => {
     const context = useContext(AuthContext);
-    if (context === undefined) {
-        throw new Error('useAuth must be used within an AuthProvider');
+    if (!context) {
+        throw new Error('useAuth must be used within AuthProvider');
     }
     return context;
 };

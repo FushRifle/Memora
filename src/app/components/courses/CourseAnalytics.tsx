@@ -1,30 +1,104 @@
 import { FiBarChart2, FiTrendingUp, FiCalendar, FiAward } from 'react-icons/fi';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/client';
+
+interface AnalyticsData {
+    progress: number;
+    study_time: number;
+    days_active: number;
+    quiz_average: number;
+    weekly_study: { day: string; hours: number }[];
+    topic_mastery: { topic: string; mastery: number }[];
+}
 
 export default function CourseAnalytics({ courseId }: { courseId: string }) {
-    // Mock analytics data - replace with actual API calls
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+
+    useEffect(() => {
+        const fetchAnalytics = async () => {
+            try {
+                setLoading(true);
+                const { data, error } = await supabase
+                    .from('study_sessions')
+                    .select('*')
+                    .eq('course_id', courseId)
+                    .single();
+
+                if (error) throw new Error(error.message);
+
+                setAnalytics(data as AnalyticsData);
+            } catch (err) {
+                setError((err as Error).message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchAnalytics();
+    }, [courseId]);
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="text-center py-10 text-red-500">
+                {error}
+                <button
+                    onClick={() => window.location.reload()}
+                    className="ml-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                >
+                    Retry
+                </button>
+            </div>
+        );
+    }
+
+    if (!analytics) return null;
+
+    // Prepare stats data
     const stats = [
-        { name: 'Overall Progress', value: '78%', icon: FiBarChart2, change: '+5%', changeType: 'positive' },
-        { name: 'Study Time', value: '14.5h', icon: FiTrendingUp, change: '+3.2h', changeType: 'positive' },
-        { name: 'Days Active', value: '12/14', icon: FiCalendar, change: '+4', changeType: 'positive' },
-        { name: 'Quiz Average', value: '84%', icon: FiAward, change: '-2%', changeType: 'negative' },
+        {
+            name: 'Overall Progress',
+            value: `${Math.round(analytics.progress)}%`,
+            icon: FiBarChart2,
+            change: '+5%',
+            changeType: 'positive'
+        },
+        {
+            name: 'Study Time',
+            value: `${analytics.study_time.toFixed(1)}h`,
+            icon: FiTrendingUp,
+            change: '+3.2h',
+            changeType: 'positive'
+        },
+        {
+            name: 'Days Active',
+            value: `${analytics.days_active}/14`,
+            icon: FiCalendar,
+            change: '+4',
+            changeType: 'positive'
+        },
+        {
+            name: 'Quiz Average',
+            value: `${Math.round(analytics.quiz_average)}%`,
+            icon: FiAward,
+            change: '-2%',
+            changeType: analytics.quiz_average > 75 ? 'positive' : 'negative'
+        },
     ];
 
-    const studyData = [
-        { day: 'Mon', hours: 2.5 },
-        { day: 'Tue', hours: 1.8 },
-        { day: 'Wed', hours: 3.2 },
-        { day: 'Thu', hours: 2.0 },
-        { day: 'Fri', hours: 1.5 },
-        { day: 'Sat', hours: 2.8 },
-        { day: 'Sun', hours: 0.5 },
-    ];
-
-    const topicMastery = [
-        { topic: 'Cell Biology', mastery: 92 },
-        { topic: 'Genetics', mastery: 85 },
-        { topic: 'Evolution', mastery: 78 },
-        { topic: 'Ecology', mastery: 65 },
-    ];
+    // Find the topic with lowest mastery for recommendations
+    const weakestTopic = analytics.topic_mastery.reduce((prev, current) =>
+        (prev.mastery < current.mastery) ? prev : current
+    );
 
     return (
         <div className="space-y-6">
@@ -36,8 +110,7 @@ export default function CourseAnalytics({ courseId }: { courseId: string }) {
                         <div className="p-5">
                             <div className="flex items-center">
                                 <div className="flex-shrink-0">
-                                    <stat.icon className={`h-6 w-6 ${stat.changeType === 'positive' ? 'text-green-500' : 'text-red-500'
-                                        }`} />
+                                    <stat.icon className={`h-6 w-6 ${stat.changeType === 'positive' ? 'text-green-500' : 'text-red-500'}`} />
                                 </div>
                                 <div className="ml-5 w-0 flex-1">
                                     <dl>
@@ -55,8 +128,7 @@ export default function CourseAnalytics({ courseId }: { courseId: string }) {
                         </div>
                         <div className="bg-gray-50 px-5 py-3">
                             <div className="text-sm">
-                                <span className={`font-medium ${stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'
-                                    }`}>
+                                <span className={`font-medium ${stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'}`}>
                                     {stat.change}
                                 </span>{' '}
                                 <span className="text-gray-500">from last week</span>
@@ -70,7 +142,7 @@ export default function CourseAnalytics({ courseId }: { courseId: string }) {
                 <div className="bg-white shadow rounded-lg p-6">
                     <h3 className="text-md font-medium text-gray-900 mb-4">Weekly Study Time</h3>
                     <div className="flex items-end space-x-2 h-48">
-                        {studyData.map((day) => (
+                        {analytics.weekly_study.map((day) => (
                             <div key={day.day} className="flex flex-col items-center flex-1">
                                 <div
                                     className="w-full bg-indigo-100 rounded-t-md"
@@ -80,7 +152,7 @@ export default function CourseAnalytics({ courseId }: { courseId: string }) {
                                 </div>
                                 <span className="text-xs text-gray-500 mt-1">{day.day}</span>
                                 <span className="text-xs font-medium text-indigo-600 mt-1">
-                                    {day.hours}h
+                                    {day.hours.toFixed(1)}h
                                 </span>
                             </div>
                         ))}
@@ -90,7 +162,7 @@ export default function CourseAnalytics({ courseId }: { courseId: string }) {
                 <div className="bg-white shadow rounded-lg p-6">
                     <h3 className="text-md font-medium text-gray-900 mb-4">Topic Mastery</h3>
                     <div className="space-y-3">
-                        {topicMastery.map((item) => (
+                        {analytics.topic_mastery.map((item) => (
                             <div key={item.topic}>
                                 <div className="flex items-center justify-between mb-1">
                                     <span className="text-sm font-medium text-gray-700">
@@ -126,11 +198,11 @@ export default function CourseAnalytics({ courseId }: { courseId: string }) {
                         </div>
                         <div className="ml-3">
                             <h4 className="text-sm font-medium text-gray-900">
-                                Focus on Ecology topics
+                                Focus on {weakestTopic.topic} topics
                             </h4>
                             <p className="text-sm text-gray-500">
-                                Your mastery score for Ecology is lower than other topics. Try reviewing
-                                the related notes and taking a practice quiz.
+                                Your mastery score for {weakestTopic.topic} is lower than other topics at {weakestTopic.mastery}%.
+                                Try reviewing the related notes and taking a practice quiz.
                             </p>
                         </div>
                     </div>

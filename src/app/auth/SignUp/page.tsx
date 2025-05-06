@@ -1,9 +1,10 @@
-"use client";
+'use client';
 import React from 'react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Head from 'next/head';
+import { supabase } from '@/lib/client';
 
 export default function SignUp() {
     const [email, setEmail] = useState('');
@@ -26,23 +27,40 @@ export default function SignUp() {
         }
 
         try {
-            // Replace with your actual authentication API call
-            const response = await fetch('/api/auth/signup', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email, password, name }),
+            const { data, error: signUpError } = await supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: {
+                        full_name: name,
+                        role: 'student' // Default role
+                    },
+                    emailRedirectTo: `${window.location.origin}/auth/callback`
+                }
             });
 
-            const data = await response.json();
+            if (signUpError) throw signUpError;
 
-            if (!response.ok) {
-                throw new Error(data.message || 'Sign up failed');
+            // Check if email confirmation is required
+            if (data.user?.identities?.length === 0) {
+                throw new Error('User already registered');
             }
 
-            // Redirect to dashboard on successful sign up
-            router.push('/dashboard');
+            // Create profile in your profiles table
+            const { error: profileError } = await supabase
+                .from('profiles')
+                .upsert({
+                    id: data.user?.id,
+                    full_name: name,
+                    email: email,
+                    role: 'student'
+                });
+
+            if (profileError) throw profileError;
+
+            // Show success message (email confirmation may be required)
+            alert('Please check your email for confirmation link');
+            router.push('/auth/Signin');
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An unknown error occurred');
         } finally {
@@ -101,7 +119,7 @@ export default function SignUp() {
 
                     <form className="space-y-6" onSubmit={handleSubmit}>
                         <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                            <label htmlFor="name" className="block text-sm font-medium text-black">
                                 Full Name
                             </label>
                             <div className="mt-1">
@@ -113,13 +131,13 @@ export default function SignUp() {
                                     required
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 text-black focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                            <label htmlFor="email" className="block text-sm font-medium text-black">
                                 Email address
                             </label>
                             <div className="mt-1">
@@ -131,13 +149,13 @@ export default function SignUp() {
                                     required
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 text-black focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                            <label htmlFor="password" className="block text-sm font-medium text-black">
                                 Password
                             </label>
                             <div className="mt-1">
@@ -149,13 +167,13 @@ export default function SignUp() {
                                     required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 text-black focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700">
+                            <label htmlFor="confirm-password" className="block text-sm font-medium text-black">
                                 Confirm Password
                             </label>
                             <div className="mt-1">
@@ -167,7 +185,7 @@ export default function SignUp() {
                                     required
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
-                                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 text-black focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                 />
                             </div>
                         </div>
@@ -180,7 +198,7 @@ export default function SignUp() {
                                 required
                                 className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                             />
-                            <label htmlFor="terms" className="ml-2 block text-sm text-gray-900">
+                            <label htmlFor="terms" className="ml-2 block text-sm text-black">
                                 I agree to the{' '}
                                 <Link href="/terms" className="text-indigo-600 hover:text-indigo-500">
                                     Terms of Service

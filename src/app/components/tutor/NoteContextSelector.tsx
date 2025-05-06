@@ -42,7 +42,7 @@ export default function NoteContextSelector() {
             </button>
 
             {isOpen && (
-                <div className="absolute z-10 mt-2 w-72 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                <div className="absolute right-0 z-10 mt-2 w-72 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
                     <div className="p-4">
                         <div className="flex justify-between items-center mb-2">
                             <h3 className="text-sm font-medium text-gray-700">Select notes for context</h3>
