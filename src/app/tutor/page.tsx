@@ -43,7 +43,7 @@ export default function TutorPage() {
         setMessages([
             {
                 id: '1',
-                content: 'Hello! I\'m your Memora AI Tutor. How can I help you with your studies today?',
+                content: 'Hello! I\'m Memora, how can I help you today?',
                 role: 'assistant',
                 timestamp: new Date(),
             },
@@ -176,7 +176,7 @@ export default function TutorPage() {
                         <FiMessageSquare className="h-6 w-6 text-white" />
                     </div>
                     <div className="ml-4">
-                        <h2 className="text-lg font-medium text-gray-900">AI Tutor</h2>
+                        <h2 className="text-lg font-medium text-gray-900">Memora Tutor</h2>
                         <ModeSelector
                             mode={conversationMode}
                             setMode={setConversationMode}

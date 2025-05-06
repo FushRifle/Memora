@@ -1,19 +1,23 @@
+"use client";
 import OverviewCards from '@/app/components/dashboard/OverviewCards';
 import RecentActivity from '@/app/components/dashboard/RecentActivity';
 import StudyProgress from '@/app/components/dashboard/StudyProgress';
 import UpcomingSchedule from '@/app/components/dashboard/UpcomingSchedule';
 import QuickActions from '@/app/components/dashboard/QuickActions';
-
+import { useAuth } from '@/providers/AuthProvider';
 export default function DashboardPage() {
+    const { user } = useAuth();
     return (
         <main className="min-h-screen bg-gray-50 shadow-xl p-6 space-y-8">
 
             {/* Welcome Banner */}
             <section className="bg-white shadow rounded-2xl p-6">
-                <h1 className="text-3xl font-semibold text-gray-900">
-                    Welcome back, <span className="text-indigo-600">Fush</span>!
-                </h1>
-                <p className="text-gray-600 mt-1">Ready to continue your learning journey?</p>
+                <div className="flex justify-between items-center">
+                    <h2 className="text-xl font-semibold">
+                        Welcome back{user ? `, ${user.full_name}` : ''}! 👋
+                    </h2>
+                    {/* Add any additional welcome message or actions here */}
+                </div>
             </section>
 
             {/* Overview Cards */}
