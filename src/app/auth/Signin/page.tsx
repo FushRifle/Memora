@@ -25,7 +25,7 @@ function SignInForm() {
             if (error) throw error;
 
             toast.success('Signed in successfully!');
-            router.push('/dashboard');
+            router.push('/pages/dashboard');
         } catch (err) {
             toast.error(err instanceof Error ? err.message : 'An unknown error occurred');
         } finally {

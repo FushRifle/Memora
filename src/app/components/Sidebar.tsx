@@ -1,6 +1,11 @@
 "use client";
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '@/providers/AuthProvider';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import router from 'next/router';
+
 import {
     FiHome, FiBook, FiFileText, FiMessageSquare, FiCalendar,
     FiBarChart2, FiSettings, FiLogOut
@@ -8,15 +13,27 @@ import {
 
 const Sidebar = () => {
     const pathname = usePathname();
+    const { user, logout } = useAuth();
+
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+            toast.success('Logged out successfully');
+            router.push('/auth/Signin');
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Failed to logout');
+        }
+    };
 
     const navItems = [
-        { name: 'Dashboard', href: '/dashboard', icon: FiHome },
-        { name: 'Courses', href: '/courses', icon: FiBook },
-        { name: 'Notes', href: '/notes', icon: FiFileText },
-        { name: 'AI Tutor', href: '/tutor', icon: FiMessageSquare },
-        { name: 'Schedule', href: '/schedule', icon: FiCalendar },
-        { name: 'Progress', href: '/progress', icon: FiBarChart2 },
-        { name: 'Settings', href: '/settings', icon: FiSettings },
+        { name: 'Dashboard', href: '/pages/dashboard', icon: FiHome },
+        { name: 'Courses', href: '/pages/courses', icon: FiBook },
+        { name: 'Notes', href: '/pages/notes', icon: FiFileText },
+        { name: 'AI Tutor', href: '/pages/tutor', icon: FiMessageSquare },
+        { name: 'Schedule', href: '/pages/schedule', icon: FiCalendar },
+        { name: 'Progress', href: '/pages/progress', icon: FiBarChart2 },
+        { name: 'Settings', href: '/pages/settings', icon: FiSettings },
     ];
 
     return (
@@ -51,7 +68,7 @@ const Sidebar = () => {
                     </nav>
                 </div>
                 <div className="p-4 border-t border-gray-200">
-                    <button className="flex items-center w-full px-3 py-2 text-sm font-medium text-left text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900">
+                    <button onClick={handleLogout} className="flex items-center w-full px-3 py-2 text-sm font-medium text-left text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900 cursor-pointer">
                         <FiLogOut className="flex-shrink-0 h-5 w-5 mr-3 text-gray-400" />
                         Sign out
                     </button>

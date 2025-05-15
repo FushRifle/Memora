@@ -19,7 +19,7 @@ const actions = [
     },
     {
         name: 'Ask AI Tutor',
-        description: 'Get instant help from EduPilot AI',
+        description: 'Get instant help from Memora AI',
         icon: FiMessageSquare,
         href: '/tutor',
         iconColor: 'text-green-600',

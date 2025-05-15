@@ -27,7 +27,7 @@ interface Course {
 export default function NoteDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const unwrappedParams = use(params); // Unwrap the params promise
+    const unwrappedParams = use(params);
 
     useEffect(() => {
         const verifyNoteExists = async () => {
@@ -36,7 +36,7 @@ export default function NoteDetailPage({ params }: { params: Promise<{ id: strin
                 const { data, error } = await supabase
                     .from('notes')
                     .select('id')
-                    .eq('id', unwrappedParams.id) // Use the unwrapped params
+                    .eq('id', unwrappedParams.id)
                     .single();
 
                 if (error) throw error;
@@ -50,10 +50,10 @@ export default function NoteDetailPage({ params }: { params: Promise<{ id: strin
         };
 
         verifyNoteExists();
-    }, [unwrappedParams.id]); // Use unwrappedParams in dependencies
+    }, [unwrappedParams.id]);
 
     if (loading) return <LoadingSpinner />;
     if (error) return <div className="text-red-500 p-4">{error}</div>;
 
-    return <NoteDetail params={unwrappedParams} />; // Pass unwrapped params
+    return <NoteDetail params={unwrappedParams} />;
 }

@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { FiSave, FiDownload, FiX } from 'react-icons/fi';
+import { FiSave, FiDownload, FiX, FiArrowLeft } from 'react-icons/fi';
 import { supabase } from '@/lib/client';
 import { useRouter } from 'next/navigation';
 
@@ -68,7 +68,18 @@ export default function NoteEditor({ note, courses }: { note: Note; courses: Cou
     };
 
     return (
-        <div className="max-w-6xl mx-auto p-6 bg-white rounded-lg shadow-md">
+        <div className="max-w-5xl mx-auto p-6 bg-white rounded-lg shadow-2xl">
+
+            {/* Back Button */}
+            <button
+                onClick={() => router.back()}
+                className="flex items-center text-gray-600 hover:text-blue-800 mb-6
+                cursor-pointer"
+            >
+                <FiArrowLeft className="mr-2" />
+                Back
+            </button>
+
             {/* Error Message */}
             {error && (
                 <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded">

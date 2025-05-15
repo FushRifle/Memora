@@ -1,31 +1,69 @@
-'use client';
-
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FiBook, FiX, FiCheck } from 'react-icons/fi';
+import { supabase } from '@/lib/client';
+import { useAuth } from '@/providers/AuthProvider'; // your auth context/hook
+
+interface Course {
+    id: string;
+    title: string;
+    color: string;
+}
 
 interface Note {
     id: string;
-    title: string;
-    course: string;
-    selected: boolean;
+    user_id: string;
+    content: string;
+    processed_at: string | null;
+    status: string;
+    course_id: string;
+    created_at?: string;
+    title?: string;
+    type?: string;
+    course?: Course;
+    selected?: boolean;
 }
 
-export default function NoteContextSelector() {
+export default function NoteContextSelector({ noteType = 'lecture' }: { noteType?: string }) {
     const [isOpen, setIsOpen] = useState(false);
-    const [notes, setNotes] = useState<Note[]>([
-        { id: '1', title: 'Lecture 1 - Introduction to Biology', course: 'Biology 101', selected: true },
-        { id: '2', title: 'Chapter 3 - Cell Structures', course: 'Biology 101', selected: false },
-        { id: '3', title: 'Derivatives Lecture Notes', course: 'Calculus II', selected: false },
-        { id: '4', title: 'World War II Timeline', course: 'History 201', selected: false },
-    ]);
+    const [notes, setNotes] = useState<Note[]>([]);
+    const { user } = useAuth(); // replace with your auth hook
+
+    useEffect(() => {
+        const fetchNotes = async () => {
+            if (!user?.id) return;
+
+            const { data, error } = await supabase
+                .from('notes')
+                .select(`
+          *,
+          course:course_id (id, title, color)
+        `)
+                .eq('type', noteType)
+                .eq('user_id', user.id);
+
+            if (error) {
+                console.error('Error fetching notes:', error.message);
+            } else {
+                const formattedNotes = data.map((note) => ({
+                    ...note,
+                    selected: false,
+                }));
+                setNotes(formattedNotes);
+            }
+        };
+
+        fetchNotes();
+    }, [noteType, user?.id]);
 
     const toggleNoteSelection = (id: string) => {
-        setNotes(notes.map(note =>
-            note.id === id ? { ...note, selected: !note.selected } : note
-        ));
+        setNotes((prevNotes) =>
+            prevNotes.map((note) =>
+                note.id === id ? { ...note, selected: !note.selected } : note
+            )
+        );
     };
 
-    const selectedNotesCount = notes.filter(note => note.selected).length;
+    const selectedNotesCount = notes.filter((note) => note.selected).length;
 
     return (
         <div className="relative">
@@ -70,7 +108,6 @@ export default function NoteContextSelector() {
                                     </div>
                                     <div className="ml-3">
                                         <p className="text-sm font-medium text-gray-900">{note.title}</p>
-                                        <p className="text-xs text-gray-500">{note.course}</p>
                                     </div>
                                 </div>
                             ))}
