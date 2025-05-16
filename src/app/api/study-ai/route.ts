@@ -1,17 +1,11 @@
 import { NextResponse } from 'next/server';
-import { OpenAI } from 'openai';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 
 // Initialize rate limiter
 const ratelimit = new Ratelimit({
     redis: Redis.fromEnv(),
-    limiter: Ratelimit.slidingWindow(15, '60 s'), // 15 requests per minute
-});
-
-// Initialize OpenAI with fallback
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY || '',
+    limiter: Ratelimit.slidingWindow(15, '60 s'),
 });
 
 interface AnalysisRequest {
@@ -26,7 +20,6 @@ interface AnalysisRequest {
 
 export async function POST(request: Request) {
     try {
-        // Rate limiting
         const identifier = request.headers.get('x-real-ip') || 'anonymous';
         const { success } = await ratelimit.limit(identifier);
 
@@ -39,7 +32,6 @@ export async function POST(request: Request) {
 
         const { notes, task, options }: AnalysisRequest = await request.json();
 
-        // Validate input
         if (!notes || !Array.isArray(notes)) {
             return NextResponse.json(
                 { error: 'Invalid notes format' },
@@ -47,45 +39,52 @@ export async function POST(request: Request) {
             );
         }
 
-        // Construct the prompt
         const prompt = `
-      **Task:** ${task}
-      **Format:** ${options?.format || 'bullet'}
-      **Complexity:** ${options?.complexity || 'detailed'}
-      **Include Questions:** ${options?.includeQuestions ? 'Yes' : 'No'}
-      
-      **Notes to Analyze:**
-      ${notes.map(n => n.content).join('\n\n')}
-      
-      Please provide:
-      1. A comprehensive analysis
-      2. Key takeaways
-      ${options?.includeQuestions ? '3. 3-5 study questions with answers' : ''}
-    `;
+**Task:** ${task}
+**Format:** ${options?.format || 'bullet'}
+**Complexity:** ${options?.complexity || 'detailed'}
+**Include Questions:** ${options?.includeQuestions ? 'Yes' : 'No'}
 
-        // Call OpenAI with error fallback
-        let completion;
-        try {
-            completion = await openai.chat.completions.create({
-                model: 'gpt-4o',
+**Notes to Analyze:**
+${notes.map(n => n.content).join('\n\n')}
+
+Please provide:
+1. A comprehensive analysis
+2. Key takeaways
+${options?.includeQuestions ? '3. 3-5 study questions with answers' : ''}
+`;
+
+        // Call Groq API
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: "llama-3.3-70b-versatile",
                 messages: [{ role: 'user', content: prompt }],
                 temperature: 0.7,
                 max_tokens: 2000,
-            });
-        } catch (error) {
-            console.error('OpenAI API error:', error);
+            })
+        });
+
+        if (!response.ok) {
+            console.error('Groq API error:', await response.text());
             return NextResponse.json(
                 {
                     analysis: "I'm currently experiencing high demand. Please try again later.",
-                    isFallback: true
+                    isFallback: true,
                 },
                 { status: 200 }
             );
         }
 
+        const data = await response.json();
+
         return NextResponse.json({
-            analysis: completion.choices[0]?.message?.content,
-            usage: completion.usage,
+            analysis: data.choices[0]?.message?.content,
+            usage: data.usage,
         });
 
     } catch (error) {

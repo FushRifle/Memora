@@ -23,12 +23,13 @@ export default function ModeSelector({
     }
 
     return (
-        <div className="flex space-x-1 mt-1">
+        <div className="flex space-x-3 mt-3">
+            <span> Modes: </span>
             {modes.map((m) => (
                 <button
                     key={m.id}
                     onClick={() => setMode(m.id as ConversationMode)}
-                    className={`flex items-center text-xs px-2 py-1 rounded ${mode === m.id ? 'bg-indigo-100 text-indigo-800' : 'text-gray-600 hover:bg-gray-100'}`}
+                    className={`flex items-center text-sm px-2 py-1 rounded ${mode === m.id ? 'bg-indigo-100 text-indigo-800' : 'text-gray-600 hover:bg-gray-100'}`}
                 >
                     {m.icon}
                     {m.label}

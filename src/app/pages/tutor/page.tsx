@@ -8,6 +8,7 @@ import {
 import NoteContextSelector from '@/app/components/tutor/NoteContextSelector';
 import FilePreviewModal from '@/app/components/tutor/FilePreviewModal';
 import ModeSelector from '@/app/components/tutor/ModeSelector';
+import LimitModal from '@/app/components/tutor/LimitsModal';
 
 declare global {
     interface Window {
@@ -61,6 +62,7 @@ export default function TutorPage() {
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [previewFile, setPreviewFile] = useState<{ url: string, type: string, name: string } | null>(null);
     const [conversationMode, setConversationMode] = useState<ConversationMode>('qa');
+    const [showLimitModal, setShowLimitModal] = useState(false);
     const [analysisOptions, setAnalysisOptions] = useState<AnalysisOptions>({
         format: 'bullet-points',
         complexity: 'detailed',
@@ -71,9 +73,10 @@ export default function TutorPage() {
     const recognitionRef = useRef<SpeechRecognition | null>(null);
 
     useEffect(() => {
+        setShowLimitModal(true);
         setMessages([{
             id: '1',
-            content: 'Hello! I\'m your AI study assistant. Upload notes or ask questions to get started!',
+            content: 'Hello! I\'m Memora, your AI study assistant. Upload notes or ask questions to get started!',
             role: 'assistant',
             timestamp: new Date(),
         }]);
@@ -305,12 +308,16 @@ export default function TutorPage() {
     };
 
     return (
-        <div className="flex flex-col h-[calc(100vh-200px)] bg-white rounded-lg shadow overflow-hidden">
+        <div className="h-[40rem] overflow-hidden flex flex-col bg-white rounded-lg shadow overflow-hidden">
+            <LimitModal
+                isOpen={showLimitModal}
+                onClose={() => setShowLimitModal(false)}
+            />
+
             <div className="border-b border-gray-200 px-4 py-5 sm:px-6 bg-indigo-50 flex justify-between items-center">
                 <div className="flex items-center">
-                    <div className="flex-shrink-0 bg-indigo-600 rounded-md p-2">
-                        <FiBook className="h-6 w-6 text-white" />
-                    </div>
+                    <img src={'/images/memora.png'}
+                        className='w-12 h-12 mx-auto' />
                     <div className="ml-4">
                         <h2 className="text-lg font-medium text-gray-900">AI Study Assistant</h2>
                         <ModeSelector
@@ -376,6 +383,7 @@ export default function TutorPage() {
                         ))}
                     </div>
                 )}
+
                 <form onSubmit={handleSubmit} className="flex space-x-2">
                     <div className="relative flex-grow">
                         <input
