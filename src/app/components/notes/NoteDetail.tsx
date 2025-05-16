@@ -1,198 +1,83 @@
-"use client";
-import {
-    FiBook, FiCalendar, FiDownload, FiEdit2,
-    FiLink, FiTrash2, FiSave, FiX
-} from 'react-icons/fi';
-import Link from 'next/link';
-import MarkdownPreview from '@/app/components/MarkdownPreview';
-import { useState } from 'react';
+'use client';
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
+import { supabase } from '@/lib/client';
+import NoteEditor from '@/app/components/notes/NoteEditor';
+import LoadingSpinner from '@/app/components/notes/LoadingSpinner';
+
+interface Course {
+    id: string;
+    title: string;
+}
 
 interface Note {
     id: string;
     title: string;
-    course: string;
-    type: 'lecture' | 'handwritten' | 'book' | 'other';
     content: string;
-    date: string;
-    lastEdited: string;
-    relatedNotes: string[];
+    course_id: string;
+    created_at: string;
+    updated_at: string;
+    type: string; // Added type property
+    status: string; // Added status property
+    // Add other note properties as needed
 }
+interface NoteDetailProps {
+    params: { id: string };
+}
+export default function NoteDetail({ params }: NoteDetailProps) {
+    const [note, setNote] = useState<Note | null>(null);
+    const [courses, setCourses] = useState<Course[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-export default function NoteDetail({ note: initialNote }: { note: Note }) {
-    const [isEditing, setIsEditing] = useState(false);
-    const [note, setNote] = useState<Note>(initialNote);
-    const [editedNote, setEditedNote] = useState<Note>({ ...initialNote });
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setLoading(true);
 
-    const handleEdit = () => {
-        setEditedNote({ ...note });
-        setIsEditing(true);
-    };
+                // Verify we have a valid ID
+                const noteId = params?.id;
+                if (!noteId || typeof noteId !== 'string') {
+                    throw new Error('Invalid note ID');
+                }
 
-    const handleSave = () => {
-        const updatedNote = {
-            ...editedNote,
-            lastEdited: 'Just now',
-            date: new Date().toISOString().split('T')[0]
+                // Fetch note
+                const { data: noteData, error: noteError } = await supabase
+                    .from('notes')
+                    .select('*')
+                    .eq('id', noteId)
+                    .single();
+
+                if (noteError) throw noteError;
+                if (!noteData) throw new Error('Note not found');
+
+                // Fetch courses
+                const { data: coursesData, error: coursesError } = await supabase
+                    .from('courses')
+                    .select('id, title');
+
+                if (coursesError) throw coursesError;
+
+                setNote(noteData);
+                setCourses(coursesData || []);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                setError(error instanceof Error ? error.message : 'Failed to load note data');
+            } finally {
+                setLoading(false);
+            }
         };
-        setNote(updatedNote);
-        setIsEditing(false);
-        // Add API call to save the note here
-    };
 
-    const handleCancel = () => {
-        setIsEditing(false);
-    };
+        fetchData();
+    }, [params?.id]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setEditedNote(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
+    if (loading) return <LoadingSpinner />;
+    if (error) return <div className="text-red-500 p-4">{error}</div>;
+    if (!note) return <div className="p-4">Note not found</div>;
 
     return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-start">
-                {isEditing ? (
-                    <div className="w-full">
-                        <input
-                            type="text"
-                            name="title"
-                            value={editedNote.title}
-                            onChange={handleChange}
-                            className="text-2xl font-bold text-gray-900 w-full p-2 border border-gray-300 rounded-md"
-                        />
-                        <div className="mt-2 flex items-center">
-                            <FiBook className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
-                            <input
-                                type="text"
-                                name="course"
-                                value={editedNote.course}
-                                onChange={handleChange}
-                                className="text-sm text-gray-500 w-full p-1 border border-gray-300 rounded-md"
-                            />
-                        </div>
-                    </div>
-                ) : (
-                    <div>
-                        <h2 className="text-2xl font-bold text-gray-900">{note.title}</h2>
-                        <div className="mt-2 flex items-center text-sm text-gray-500">
-                            <FiBook className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
-                            <span>{note.course}</span>
-                        </div>
-                    </div>
-                )}
-
-                <div className="flex space-x-2">
-                    {isEditing ? (
-                        <>
-                            <button
-                                onClick={handleCancel}
-                                className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer"
-                            >
-                                <FiX className="-ml-1 mr-1.5 h-4 w-4" />
-                                Cancel
-                            </button>
-
-                            <button
-                                onClick={handleSave}
-                                className="inline-flex items-center px-3 py-1.5 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer"
-                            >
-                                <FiSave className="-ml-1 mr-1.5 h-4 w-4" />
-                                Save
-                            </button>
-                        </>
-                    ) : (
-                        <>
-                            <button
-                                onClick={handleEdit}
-                                className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer"
-                            >
-                                <FiEdit2 className="-ml-1 mr-1.5 h-4 w-4" />
-                                Edit
-                            </button>
-                            <button
-                                type="button"
-                                className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer"
-                            >
-                                <FiDownload className="-ml-1 mr-1.5 h-4 w-4" />
-                                Download
-                            </button>
-                        </>
-                    )}
-                </div>
-            </div>
-
-            <div className="bg-white shadow overflow-hidden rounded-lg">
-                <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                        {isEditing ? (
-                            <div className="flex items-center">
-                                <select
-                                    name="type"
-                                    value={editedNote.type}
-                                    onChange={handleChange}
-                                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-300"
-                                >
-                                    <option value="lecture">Lecture</option>
-                                    <option value="handwritten">Handwritten</option>
-                                    <option value="book">Book</option>
-                                    <option value="other">Other</option>
-                                </select>
-                            </div>
-                        ) : (
-                            <>
-                                <div className="flex items-center text-sm text-gray-500">
-                                    <FiCalendar className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
-                                    <span>Created {note.date} • Last edited {note.lastEdited}</span>
-                                </div>
-                                <div>
-                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                        {note.type}
-                                    </span>
-                                </div>
-                            </>
-                        )}
-                    </div>
-                </div>
-                <div className="px-4 py-5 sm:p-6">
-                    {isEditing ? (
-                        <textarea
-                            name="content"
-                            value={editedNote.content}
-                            onChange={handleChange}
-                            rows={15}
-                            className="w-full p-2 border border-gray-300 rounded-md font-mono text-sm"
-                        />
-                    ) : (
-                        <MarkdownPreview content={note.content} />
-                    )}
-                </div>
-            </div>
-
-            {note.relatedNotes.length > 0 && (
-                <div className="bg-white shadow overflow-hidden rounded-lg">
-                    <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-                        <h3 className="text-lg font-medium text-gray-900">Related Notes</h3>
-                    </div>
-                    <div className="px-4 py-5 sm:p-6">
-                        <ul className="space-y-2">
-                            {note.relatedNotes.map((relatedNote) => (
-                                <li key={relatedNote} className="flex items-center">
-                                    <FiLink className="flex-shrink-0 h-4 w-4 text-gray-400 mr-2" />
-                                    <Link
-                                        href="#"
-                                        className="text-indigo-600 hover:text-indigo-500"
-                                    >
-                                        {relatedNote}
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                </div>
-            )}
+        <div className="container mx-auto p-4">
+            <NoteEditor note={note} courses={courses} />
         </div>
     );
 }
