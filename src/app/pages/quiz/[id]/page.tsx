@@ -1,3 +1,5 @@
+'use client';
+
 import { notFound } from 'next/navigation';
 import { useQuizStore } from '@/store/QuizStore';
 import { useAuth } from '@/providers/AuthProvider';
