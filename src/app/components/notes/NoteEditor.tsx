@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { FiSave, FiDownload, FiX, FiArrowLeft } from 'react-icons/fi';
 import { supabase } from '@/lib/client';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 
 interface Note {
     id: string;
@@ -46,7 +47,9 @@ export default function NoteEditor({ note, courses }: { note: Note; courses: Cou
                 .eq('id', note.id);
 
             if (error) throw error;
+
             router.refresh();
+            toast.success('Note saved successfully!'); // ✅ show success toast
         } catch (error) {
             console.error('Error saving note:', error);
             setError('Failed to save note. Please try again.');
@@ -65,7 +68,10 @@ export default function NoteEditor({ note, courses }: { note: Note; courses: Cou
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+
+        toast.success('Note downloaded!'); // ✅ show success toast
     };
+
 
     return (
         <div className="max-w-5xl mx-auto p-6 bg-white rounded-lg shadow-2xl">

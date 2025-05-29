@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { FiBook, FiX, FiCheck } from 'react-icons/fi';
 import { supabase } from '@/lib/client';
-import { useAuth } from '@/providers/AuthProvider'; // your auth context/hook
+import { useAuth } from '@/providers/AuthProvider';
 
 interface Course {
     id: string;
@@ -26,8 +26,7 @@ interface Note {
 export default function NoteContextSelector({ noteType = 'lecture' }: { noteType?: string }) {
     const [isOpen, setIsOpen] = useState(false);
     const [notes, setNotes] = useState<Note[]>([]);
-    const { user } = useAuth(); // replace with your auth hook
-
+    const { user } = useAuth();
     useEffect(() => {
         const fetchNotes = async () => {
             if (!user?.id) return;

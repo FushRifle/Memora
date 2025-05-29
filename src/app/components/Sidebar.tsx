@@ -9,7 +9,7 @@ import router from 'next/router';
 
 import {
     FiHome, FiBook, FiFileText, FiMessageSquare, FiCalendar,
-    FiBarChart2, FiSettings, FiLogOut, FiChevronLeft,
+    FiBarChart2, FiSettings, FiLogOut, FiChevronLeft, FiBookOpen,
     FiChevronRight, FiMenu, FiX, FiStar
 } from 'react-icons/fi';
 
@@ -46,6 +46,7 @@ const Sidebar = () => {
         { name: 'Courses', href: '/pages/courses', icon: FiBook },
         { name: 'Notes', href: '/pages/notes', icon: FiFileText },
         { name: 'AI Tutor', href: '/pages/tutor', icon: FiMessageSquare },
+        { name: 'Quiz', href: '/pages/quiz', icon: FiBookOpen },
         { name: 'Schedule', href: '/pages/schedule', icon: FiCalendar },
         { name: 'Progress', href: '/pages/progress', icon: FiBarChart2 },
         { name: 'Settings', href: '/pages/settings', icon: FiSettings },
@@ -93,7 +94,7 @@ const Sidebar = () => {
                         )}
                         <button
                             onClick={toggleSidebar}
-                            className="p-2 rounded-md hover:bg-gray-100 text-gray-500 hover:text-gray-700"
+                            className="p-2 rounded-md hover:bg-gray-100 cursor-pointer text-gray-500 hover:text-gray-700"
                         >
                             {isMobile ? (
                                 <FiX size={20} />

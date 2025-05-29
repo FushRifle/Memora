@@ -155,7 +155,7 @@ const Navbar = () => {
 
     return (
         <>
-            <div className="border-b border-gray-200 bg-white dark:bg-gray-800 dark:border-gray-700 shadow-sm">
+            <div className="border-b border-gray-200 bg-indigo-600 shadow-sm">
                 <ToastContainer
                     position="top-center"
                     autoClose={3000}
@@ -170,7 +170,7 @@ const Navbar = () => {
                 />
 
                 {/* Desktop Navbar */}
-                <div className="hidden md:flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
+                <div className="hidden md:flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8 rounded-lg shadow-sm">
                     {/* Search Bar */}
                     <div className="flex-1 max-w-md">
                         <div className="relative">
@@ -180,7 +180,7 @@ const Navbar = () => {
                             <input
                                 type="text"
                                 placeholder="Search courses, documents..."
-                                className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg leading-5 bg-white dark:bg-gray-700 placeholder-gray-400 dark:placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-200 shadow-sm hover:border-gray-400 dark:hover:border-gray-500 dark:text-white"
+                                className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg leading-5 bg-white dark:bg-white placeholder-gray-400 dark:placeholder-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-200 shadow-sm hover:border-gray-400 dark:hover:border-gray-500 dark:text-white"
                                 onFocus={() => setIsSearchFocused(true)}
                                 onBlur={() => setIsSearchFocused(false)}
                             />
@@ -303,7 +303,7 @@ const Navbar = () => {
                                     <div className="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-200">
                                         {user.full_name || user.email}
                                     </div>
-                                    <div className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors duration-200">
+                                    <div className="text-xs text-gray-500 dark:text-gray-300 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors duration-200">
                                         {user.role || 'Member'}
                                     </div>
                                 </div>

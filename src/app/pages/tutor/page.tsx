@@ -308,7 +308,8 @@ export default function TutorPage() {
     };
 
     return (
-        <div className="h-[40rem] overflow-hidden flex flex-col bg-white rounded-lg shadow overflow-hidden">
+
+        <div className="h-[47rem] overflow-y-hidden flex flex-col bg-white rounded-lg shadow overflow-hidden">
             <LimitModal
                 isOpen={showLimitModal}
                 onClose={() => setShowLimitModal(false)}
@@ -388,7 +389,7 @@ export default function TutorPage() {
                     <div className="relative flex-grow">
                         <input
                             type="text"
-                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3 pr-20"
+                            className="block w-full rounded-md border-indigo-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3 pr-20"
                             placeholder={
                                 conversationMode === 'analyze' ?
                                     "What would you like me to analyze?" :
@@ -402,7 +403,7 @@ export default function TutorPage() {
                             <button
                                 type="button"
                                 onClick={toggleVoiceInput}
-                                className={`p-1 rounded-full ${isListening ? 'text-red-500 animate-pulse' : 'text-gray-400 hover:text-gray-500'}`}
+                                className={`p-1 rounded-full h-10 w-10 ${isListening ? 'text-red-500 animate-pulse' : 'text-gray-400 hover:text-gray-500'}`}
                                 disabled={isLoading}
                             >
                                 {isListening ? <FiMicOff /> : <FiMic />}
@@ -410,13 +411,13 @@ export default function TutorPage() {
                             <button
                                 type="button"
                                 onClick={() => setIsSpeakEnabled(!isSpeakEnabled)}
-                                className={`p-1 rounded-full ${isSpeakEnabled ? 'text-indigo-600' : 'text-gray-400'}`}
+                                className={`p-1 rounded-full h-10 w-10 ${isSpeakEnabled ? 'text-indigo-600' : 'text-gray-600'}`}
                             >
                                 {isSpeakEnabled ? <FiVolume2 /> : <FiVolumeX />}
                             </button>
                         </div>
                     </div>
-                    <label className="flex items-center px-3 rounded bg-white border border-gray-300 cursor-pointer hover:bg-gray-100">
+                    <label className="flex items-center px-3 rounded bg-indigo-600 text-white border border-gray-900 cursor-pointer hover:bg-gray-100">
                         <FiUpload />
                         <input
                             type="file"
@@ -427,9 +428,10 @@ export default function TutorPage() {
                             accept=".pdf,.doc,.docx,.txt,.md,.jpg,.png"
                         />
                     </label>
+
                     <button
                         type="submit"
-                        className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50 flex items-center justify-center"
+                        className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 flex items-center justify-center"
                         disabled={isLoading || (!input.trim() && selectedFiles.length === 0)}
                     >
                         <FiSend />

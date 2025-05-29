@@ -276,7 +276,7 @@ export default function NoteList({ courses, onNoteDeleted }: NoteListProps) {
 
                                         <div className="ml-2 flex-shrink-0 flex space-x-2">
                                             <Link
-                                                href={`/notes/${note.id}`}
+                                                href={`/pages/notes/${note.id}`}
                                                 className="inline-flex items-center p-1 border border-gray-300 rounded-full shadow-sm text-gray-400 hover:text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer"
                                                 onClick={(e) => e.stopPropagation()}
                                             >
@@ -394,7 +394,7 @@ export default function NoteList({ courses, onNoteDeleted }: NoteListProps) {
                                     Delete
                                 </button>
                                 <Link
-                                    href={`/notes/${selectedNote.id}`}
+                                    href={`/pages/notes/${selectedNote.id}`}
                                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer"
                                 >
                                     <FiEdit2 className="mr-2 h-4 w-4" />

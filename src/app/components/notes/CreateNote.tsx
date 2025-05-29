@@ -118,7 +118,7 @@ export default function CreateNoteModal({ isOpen, onClose, courses, onCourseCrea
 
             onClose();
             router.refresh();
-            router.push(`/notes/${data.id}`);
+            router.push(`/pages/notes/${data.id}`);
         } catch (error) {
             console.error('Error creating note:', error);
             setError(error instanceof Error ? error.message : 'Failed to create note. Please try again.');

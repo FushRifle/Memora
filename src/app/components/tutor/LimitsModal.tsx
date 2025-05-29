@@ -20,7 +20,7 @@ export default function LimitModal({ isOpen, onClose }: LimitModalProps) {
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full p-6 overflow-y-auto max-h-[90vh]">
+            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full p-6 overflow-y-hidden max-h-[90vh]">
                 <div className="flex items-start">
                     <div className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100">
                         <FiAlertTriangle className="h-6 w-6 text-yellow-600" />
@@ -37,8 +37,6 @@ export default function LimitModal({ isOpen, onClose }: LimitModalProps) {
                                 <li>5MB maximum file size</li>
                                 <li>Basic text analysis only</li>
                                 <li>3 document uploads per day</li>
-                                <li>No priority support</li>
-                                <li>No API access</li>
                             </ul>
                         </div>
                     </div>
@@ -105,14 +103,14 @@ export default function LimitModal({ isOpen, onClose }: LimitModalProps) {
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-indigo-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer"
                         >
                             Continue Free
                         </button>
                         <button
                             type="button"
                             onClick={handleUpgrade}
-                            className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-md hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 flex items-center shadow-lg"
+                            className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-md hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 flex items-center shadow-lg cursor-pointer"
                         >
                             <FiStar className="mr-2" />
                             Upgrade Now

@@ -17,8 +17,8 @@ interface Note {
     course_id: string;
     created_at: string;
     updated_at: string;
-    type: string; // Added type property
-    status: string; // Added status property
+    type: string;
+    status: string;
     // Add other note properties as needed
 }
 interface NoteDetailProps {

@@ -8,11 +8,11 @@ import { AuthProvider } from '@/providers/AuthProvider';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-    title: 'Schedules | Memora AI',
-    description: 'Your AI-powered study assistant schedules',
+    title: 'Quiz | Memora AI',
+    description: 'Your AI-powered study assistant progress',
 };
 
-export default function SchedulesLayout({
+export default function ProgressLayout({
     children,
 }: {
     children: React.ReactNode;
@@ -29,6 +29,7 @@ export default function SchedulesLayout({
                     <div className="flex-1 overflow-auto">
                         {/* Navbar */}
                         <Navbar />
+
                         {/* Page content */}
                         <main className="p-6">
                             {children}

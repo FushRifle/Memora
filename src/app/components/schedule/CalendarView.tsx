@@ -1,15 +1,24 @@
 'use client';
 
-import { FiCheck, FiX, FiEdit2 } from 'react-icons/fi';
-import Link from 'next/link';
-import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
+import { format } from 'date-fns/format';
+import { parse } from 'date-fns/parse';
+import { startOfWeek } from 'date-fns/startOfWeek';
+import { getDay } from 'date-fns/getDay';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import { useState } from 'react';
-import { enUS } from 'date-fns/locale';
+
+interface StudySession {
+    id: string;
+    user_id: string;
+    title: string;
+    start_time: Date;
+    end_time: Date;
+    type: string;
+    created_at: Date;
+}
 
 const locales = {
-    'en-US': enUS,
+    'en-US': require('date-fns/locale/en-US'),
 };
 
 const localizer = dateFnsLocalizer({
@@ -20,121 +29,48 @@ const localizer = dateFnsLocalizer({
     locales,
 });
 
-interface StudySession {
-    id: string;
-    title: string;
-    course: string;
-    date: Date;
-    duration: number;
-    description: string;
-    completed: boolean;
+interface CalendarViewProps {
+    sessions: StudySession[];
 }
 
-export default function CalendarView({ sessions }: { sessions: StudySession[] }) {
-    const [currentDate, setCurrentDate] = useState(new Date());
-
-    const events = sessions.map((session) => ({
+export default function CalendarView({ sessions }: CalendarViewProps) {
+    const events = sessions.map(session => ({
         id: session.id,
-        title: `${session.course}: ${session.title}`,
-        start: session.date,
-        end: new Date(session.date.getTime() + session.duration * 60000),
-        completed: session.completed,
-        session,
+        title: session.title,
+        start: new Date(session.start_time),
+        end: new Date(session.end_time),
+        type: session.type,
     }));
 
     const eventStyleGetter = (event: any) => {
-        const backgroundColor = event.completed ? '#10B981' : '#3B82F6';
-        const style = {
-            backgroundColor,
-            borderRadius: '4px',
-            opacity: 0.8,
-            color: 'white',
-            border: '0px',
-            display: 'block',
-        };
+        let backgroundColor = '#3174ad';
+        if (event.type === 'reading') backgroundColor = '#5cb85c';
+        if (event.type === 'project') backgroundColor = '#d9534f';
+
         return {
-            style,
+            style: {
+                backgroundColor,
+                borderRadius: '4px',
+                opacity: 0.8,
+                color: 'white',
+                border: '0px',
+                display: 'block',
+            },
         };
-    };
-
-    const CustomToolbar = (toolbar: any) => {
-        const goToBack = () => {
-            toolbar.onNavigate('PREV');
-        };
-
-        const goToNext = () => {
-            toolbar.onNavigate('NEXT');
-        };
-
-        const goToCurrent = () => {
-            toolbar.onNavigate('TODAY');
-        };
-
-        const label = () => {
-            const date = toolbar.date;
-            return format(date, 'MMMM yyyy');
-        };
-
-        return (
-            <div className="flex items-center justify-between mb-4">
-                <div className="flex space-x-2">
-                    <button
-                        onClick={goToBack}
-                        className="px-3 py-1 border rounded-md text-sm"
-                    >
-                        &lt;
-                    </button>
-                    <button
-                        onClick={goToCurrent}
-                        className="px-3 py-1 border rounded-md text-sm"
-                    >
-                        Today
-                    </button>
-                    <button
-                        onClick={goToNext}
-                        className="px-3 py-1 border rounded-md text-sm"
-                    >
-                        &gt;
-                    </button>
-                </div>
-                <div className="text-lg font-medium">{label()}</div>
-                <div></div> {/* Empty div for balance */}
-            </div>
-        );
-    };
-
-    const CustomEvent = ({ event }: { event: any }) => {
-        return (
-            <div className="p-1">
-                <div className="font-medium truncate">{event.title}</div>
-                <div className="text-xs">
-                    {format(event.start, 'h:mm a')} - {format(event.end, 'h:mm a')}
-                </div>
-            </div>
-        );
     };
 
     return (
-        <div className="bg-white shadow rounded-lg overflow-hidden p-4 h-[600px]">
+        <div className="h-[600px] mt-4">
             <Calendar
                 localizer={localizer}
                 events={events}
                 startAccessor="start"
                 endAccessor="end"
-                style={{ height: '100%' }}
-                defaultView="week"
-                views={['month', 'week', 'day', 'agenda']}
-                toolbar={true}
-                components={{
-                    toolbar: CustomToolbar,
-                    event: CustomEvent,
-                }}
                 eventPropGetter={eventStyleGetter}
-                onNavigate={(date) => setCurrentDate(date)}
-                onSelectEvent={(event) => {
-                    // Handle event click (could open a modal)
-                    console.log('Event selected:', event);
-                }}
+                views={['month', 'week', 'day', 'agenda']}
+                defaultView="week"
+                popup
+                onSelectEvent={(event) => alert(`Selected: ${event.title}`)}
             />
         </div>
     );

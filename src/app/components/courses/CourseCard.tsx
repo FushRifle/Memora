@@ -82,7 +82,7 @@ export default function CourseCard({ course }: { course: Course }) {
                 <div className="flex justify-between items-center text-sm">
                     <span className="text-gray-500">Last studied {lastAccessed}</span>
                     <Link
-                        href={`/courses/${course.id}`}
+                        href={`/pages/courses/${course.id}`}
                         className="font-medium text-indigo-600 hover:text-indigo-500"
                     >
                         View course →

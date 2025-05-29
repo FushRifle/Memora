@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { notFound } from 'next/navigation';
+import { notFound, useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 import CourseHeader from '@/app/components/courses/CourseHeader';
@@ -32,7 +32,7 @@ interface CourseView {
 export default function CourseDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = React.use(params);
     const supabase = createClientComponentClient();
-
+    const router = useRouter();
     const [course, setCourse] = useState<CourseView | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -73,7 +73,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
                     const minimalView: CourseView = {
                         id: '',
                         course_id: courseData.id,
-                        user_id: '', // You might want to set this to the current user
+                        user_id: '',
                         course_title: courseData.title || '',
                         instructor: courseData.instructor || '',
                         description: courseData.description || '',
@@ -128,6 +128,16 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
 
     return (
         <div className="space-y-6">
+            {/* 👇 Back Button */}
+            <div className="px-4 pt-4">
+                <button
+                    onClick={() => router.back()}
+                    className="text-blue-600 hover:underline text-sm cursor-pointer flex items-center"
+                >
+                    ← Back
+                </button>
+            </div>
+
             <CourseHeader
                 course={{
                     title: course.course_title,

@@ -4,6 +4,7 @@ import './globals.css';
 import Sidebar from '@/app/components/Sidebar';
 import Navbar from '@/app/components/Navbar';
 import { AuthProvider } from '@/providers/AuthProvider';
+import { Toaster } from 'react-hot-toast';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -32,6 +33,7 @@ export default function NotesLayout({
 
                         {/* Page content */}
                         <main className="p-6">
+                            <Toaster position="top-right" reverseOrder={false} />
                             {children}
                         </main>
                     </div>
