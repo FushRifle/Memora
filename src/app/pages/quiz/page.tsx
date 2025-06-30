@@ -23,14 +23,18 @@ export default function QuizzesPage() {
         const newQuiz: Quiz = {
             id: `quiz-${Date.now()}`,
             user_id: 'current-user-id',
-            course_id: 'default-course-id',
             title: quizData.title,
             topic: quizData.topic,
             total_questions: quizData.questions.length,
             completed: false,
             score: 0,
-            due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-            created_at: new Date(),
+            due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+            created_at: new Date().toISOString(),
+            questions: [],
+            estimated_time: 0,
+            difficulty: '',
+            total_points: 0,
+            updated_at: ''
         };
 
         setQuizzes([...quizzes, newQuiz]);
@@ -46,6 +50,9 @@ export default function QuizzesPage() {
                 <div>
                     <h2 className="text-lg font-medium text-gray-900">Study Quizzes</h2>
                     {/* ... existing stats ... */}
+                    <div className="mt-2 text-sm text-gray-500">
+                        {quizzes.length} quizzes available
+                    </div>
                 </div>
                 <div className="flex space-x-3">
                     <div className="relative">

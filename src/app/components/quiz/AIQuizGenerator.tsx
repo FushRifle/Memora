@@ -113,8 +113,8 @@ export default function AIQuizGenerator({
     };
 
     const generateFullQuiz = async () => {
-        if (!selectedOption || !user?.id) {
-            setError('Please select a quiz option and ensure you are logged in');
+        if (!selectedOption) {
+            setError('Please select a quiz option first');
             return;
         }
 
@@ -123,99 +123,46 @@ export default function AIQuizGenerator({
         setGenerationStep('full-quiz');
 
         try {
-            // Prepare notes context for API
             const notesContext = selectedNotes.map(note => ({
-                title: note.title || '',
-                content: note.content || '',
+                title: note.title,
+                content: note.content,
                 keyConcepts: note.course?.title || '',
-                tags: note.course?.title ? [note.course.title] : [],
+                tags: note.course ? [note.course.title] : [],
             }));
 
-            // Call the API to generate the quiz
             const response = await fetch('/api/quiz/all-quiz', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     notes: notesContext,
-                    quizOption: {
-                        title: selectedOption.title || '',
-                        topic: selectedOption.topic || '',
-                        questions_count: selectedOption.questions_count || 10,
-                        estimated_time: selectedOption.estimated_time || 15,
-                        difficulty: selectedOption.difficulty || 'medium'
-                    },
+                    quizOption: selectedOption,
                     requirements: {
                         format: 'json',
                         include_explanations: true,
                         points_per_question: 10,
-                        shuffle_answers: true,
-                    },
+                        shuffle_answers: true
+                    }
                 }),
             });
 
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.error || 'Failed to generate full quiz');
-            }
+            if (!response.ok) throw new Error(`API error: ${response.status} ${response.statusText}`);
 
             const quizData = await response.json();
+            if (!quizData.questions?.length) throw new Error('Invalid quiz format received');
 
-            // Validate the quiz structure
-            if (!quizData || !Array.isArray(quizData.questions)) {
-                throw new Error('Invalid quiz format received from server');
-            }
-
-            // Calculate total points with proper fallbacks
-            const total_points = quizData.questions.reduce(
-                (sum: number, q: any) => sum + (Number(q.points) || 0),
-                0
-            );
-
-            const dueDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-
-            const completeQuizData: Omit<Quiz, 'id' | 'created_at'> = {
+            const completeQuizData: FullQuizData = {
+                ...quizData,
                 title: selectedOption.title,
-                topic: selectedOption.topic ?? '',
-                questions: quizData.questions,
-                estimated_time: selectedOption.estimated_time ?? 0,
-                difficulty: selectedOption.difficulty?.toString() ?? 'medium',
-                total_points,
-                due_date: dueDate,
-                completed: false,
-                score: 0,
-                total_questions: quizData.questions.length,
-                user_id: user.id,
-                updated_at: new Date().toISOString(),
+                topic: selectedOption.topic,
+                estimated_time: selectedOption.estimated_time,
+                difficulty: selectedOption.difficulty || 'medium',
+                total_points: quizData.questions.reduce((sum: number, q: QuizQuestion) => sum + q.points, 0),
             };
 
-            // Save to database
-            const savedQuiz = await addQuiz(completeQuizData, user.id);
-            if (!savedQuiz) {
-                throw new Error('Failed to save quiz to database');
-            }
-
-            // Update state
-            setGeneratedQuizzes(prev => [...prev, savedQuiz]);
-            setSelectedQuiz(savedQuiz);
-
-            // Notify parent component
-            onGenerate({
-                ...savedQuiz,
-                topic: savedQuiz.topic || '',
-                estimated_time: savedQuiz.estimated_time ?? 0, // fallback to 0
-                difficulty: savedQuiz.difficulty || 'medium', // fallback to 'medium'
-                due_date: typeof savedQuiz.due_date === 'string'
-                    ? savedQuiz.due_date
-                    : new Date(savedQuiz.due_date).toISOString(), // handle Date object
-                score: typeof savedQuiz.score === 'number' ? savedQuiz.score : 0, // ensure score is a number
-            });
-
-            // Navigate to quiz page
-            router.push(`/quizzes/${savedQuiz.id}`);
-
+            onGenerate(completeQuizData);
         } catch (err) {
-            console.error('Quiz generation error:', err);
-            setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+            setError(err instanceof Error ? err.message : 'Failed to generate full quiz');
+            console.error('Full quiz generation error:', err);
             setGenerationStep('options');
         } finally {
             setIsGenerating(false);
@@ -230,16 +177,17 @@ export default function AIQuizGenerator({
     };
 
     return (
-        <div className="fixed inset-0 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white shadow-3xl rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white shadow-3xl rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
                 <div className="flex justify-between items-center border-b px-4 py-3 sticky top-0 bg-white z-10">
-                    <h3 className="text-lg font-medium">AI Quiz Generator</h3>
+                    <h3 className="text-lg font-medium">Generate Quiz</h3>
                     <button
                         onClick={onCancel}
-                        className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                        className="p-1 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
+                        aria-label="Close"
                         disabled={isGenerating}
                     >
-                        <FiX className="h-5 w-5 text-gray-500" />
+                        <FiX className="h-8 w-8 text-red-500" />
                     </button>
                 </div>
 
@@ -253,24 +201,26 @@ export default function AIQuizGenerator({
                         </div>
                     )}
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Select Notes to Generate Quiz From
-                        </label>
-                        <NoteContextSelector
-                            selectedNotes={
-                                selectedNotes
-                                    .filter((n): n is Note & { created_at: string } => typeof n.created_at === 'string' && typeof n.title === 'string')
-                                    .map(n => n as import('./QuizContext').Note)
-                            }
-                            onSelectionChange={handleNoteSelection}
-                            disabled={isGenerating}
-                            isOpen={isSelectorOpen}
-                            onToggleOpen={toggleSelector}
-                        />
-                        <p className="mt-1 text-xs text-gray-500">
-                            Selected {selectedNotes.length} note(s)
-                        </p>
+                    <div className='flex flex-row mb-4'>
+                        <div className='ml-auto flex flex-col items-end'>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Select Notes to Generate Quiz From
+                            </label>
+                            <NoteContextSelector
+                                selectedNotes={
+                                    selectedNotes
+                                        .filter((n): n is Note & { created_at: string } => typeof n.created_at === 'string' && typeof n.title === 'string')
+                                        .map(n => n as import('./QuizContext').Note)
+                                }
+                                onSelectionChange={handleNoteSelection}
+                                disabled={isGenerating}
+                                isOpen={isSelectorOpen}
+                                onToggleOpen={toggleSelector}
+                            />
+                            <p className="mt-1 text-xs text-gray-500">
+                                Selected {selectedNotes.length} note(s)
+                            </p>
+                        </div>
                     </div>
 
                     {generationStep === 'options' ? (

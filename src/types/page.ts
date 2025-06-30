@@ -39,3 +39,21 @@ export interface Note {
     type?: string;
     selected?: boolean;
 }
+
+export interface FullQuiz {
+    id?: string;
+    title: string;
+    topic: string;
+    description?: string;
+    questions: QuizQuestion[];
+    estimated_time: number;
+    difficulty: 'easy' | 'medium' | 'hard';
+    total_points: number;
+    due_date?: string;
+    completed?: boolean;
+    score?: number;
+    total_questions?: number;
+    user_id?: string;
+    created_at?: string;
+    updated_at?: string;
+}
